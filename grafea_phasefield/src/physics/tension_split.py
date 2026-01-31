@@ -61,6 +61,46 @@ def spectral_split_2d(eps_tensor: np.ndarray) -> Tuple[np.ndarray, np.ndarray, n
     return eigenvalues, eps_plus, eps_minus
 
 
+def compute_split_energy_miehe(eps_tensor: np.ndarray, lame_lambda: float,
+                                lame_mu: float) -> Tuple[float, float]:
+    """
+    Compute split strain energy using the correct Miehe formulation.
+
+    The Miehe split for isotropic materials:
+        ψ⁺ = ½λ<tr(ε)>₊² + μ tr((ε⁺)²)
+        ψ⁻ = ½λ<tr(ε)>₋² + μ tr((ε⁻)²)
+
+    This ensures ψ = ψ⁺ + ψ⁻ exactly.
+
+    Args:
+        eps_tensor: [ε_xx, ε_yy, γ_xy] in Voigt notation
+        lame_lambda: Lamé's first parameter λ
+        lame_mu: Lamé's second parameter μ (shear modulus)
+
+    Returns:
+        psi_plus: tensile strain energy density
+        psi_minus: compressive strain energy density
+    """
+    # Get spectral split
+    _, eps_plus, eps_minus = spectral_split_2d(eps_tensor)
+
+    # Trace of strain
+    tr_eps = eps_tensor[0] + eps_tensor[1]
+    tr_eps_plus = max(tr_eps, 0)
+    tr_eps_minus = min(tr_eps, 0)
+
+    # Compute tr(ε²) for the split tensors
+    # For ε in Voigt: tr(ε²) = ε_xx² + ε_yy² + 2*(γ_xy/2)² = ε_xx² + ε_yy² + γ_xy²/2
+    def tr_eps_squared(eps):
+        return eps[0]**2 + eps[1]**2 + 0.5 * eps[2]**2
+
+    # Miehe energy split
+    psi_plus = 0.5 * lame_lambda * tr_eps_plus**2 + lame_mu * tr_eps_squared(eps_plus)
+    psi_minus = 0.5 * lame_lambda * tr_eps_minus**2 + lame_mu * tr_eps_squared(eps_minus)
+
+    return psi_plus, psi_minus
+
+
 def spectral_split(eps_tensor: np.ndarray, eps_edge: np.ndarray,
                    C: np.ndarray, T: np.ndarray) -> Dict:
     """
