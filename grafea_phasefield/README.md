@@ -60,6 +60,28 @@ solver = StaggeredSolver(mesh, elements, material, edge_graph)
 # ... (see examples for complete usage)
 ```
 
+## Documentation
+
+Full documentation is available in the `../docs/` directory and can be built using Sphinx.
+
+### Building Documentation
+
+```bash
+cd ../docs
+pip install -r requirements.txt
+make html
+```
+
+Then open `_build/html/index.html` in your browser.
+
+### Documentation Contents
+
+- **Getting Started**: Installation guide and quick start tutorial
+- **User Guide**: Detailed usage instructions and best practices
+- **Theory**: Mathematical background of the edge-based phase-field formulation
+- **Tutorials**: Step-by-step examples including simple tension and advanced usage
+- **API Reference**: Complete documentation for all modules
+
 ## Project Structure
 
 ```
@@ -73,7 +95,7 @@ grafea_phasefield/
 │   └── postprocess/   # Visualization and energy tracking
 ├── tests/             # Test suite
 ├── examples/          # Example scripts
-└── docs/              # Documentation
+└── docs/              # Documentation (in parent directory)
 ```
 
 ## Running Tests
