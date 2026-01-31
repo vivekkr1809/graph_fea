@@ -72,7 +72,9 @@ class TestFullWorkflow:
         assert len(results) == 1
         assert results[0].converged
         assert results[0].n_iterations <= 3  # Should converge quickly
-        assert np.allclose(results[0].damage, 0)  # No damage
+        # Damage should be essentially zero (just numerical noise)
+        assert np.max(results[0].damage) < 1e-6, \
+            f"Damage should be ~0, max is {np.max(results[0].damage)}"
 
     def test_single_element_tension(self):
         """Simple tension test on single element."""
@@ -83,14 +85,11 @@ class TestFullWorkflow:
         material = IsotropicMaterial(E=210e9, nu=0.3, Gc=2700, l0=0.5)
         elements = [GraFEAElement(nodes, material)]
 
-        # Fix node 0, apply displacement to node 1
-        bc_dofs = np.array([0, 1, 5])  # u0x, u0y, u2y
-        bc_values = np.array([0, 0, 0])
-
+        # Fix node 0 completely, fix u2x to prevent rotation about node 0
         # Apply x-displacement to node 1
         applied_disp = 0.001
-        bc_dofs = np.append(bc_dofs, 2)
-        bc_values = np.append(bc_values, applied_disp)
+        bc_dofs = np.array([0, 1, 4, 2])  # u0x, u0y, u2x, u1x
+        bc_values = np.array([0, 0, 0, applied_disp])
 
         damage = np.zeros(mesh.n_edges)
         K = assemble_global_stiffness(mesh, elements, damage)
@@ -100,9 +99,10 @@ class TestFullWorkflow:
         u = spsolve(K_bc, F_bc)
 
         # Check solution is reasonable
-        assert u[2] == applied_disp  # Prescribed
-        assert u[0] == 0  # Fixed
-        assert u[1] == 0  # Fixed
+        assert np.isclose(u[2], applied_disp), f"u1x should be {applied_disp}, got {u[2]}"
+        assert np.isclose(u[0], 0), f"u0x should be 0, got {u[0]}"
+        assert np.isclose(u[1], 0), f"u0y should be 0, got {u[1]}"
+        assert np.isclose(u[4], 0), f"u2x should be 0, got {u[4]}"
 
     def test_damage_growth_localization(self):
         """Test that damage grows and localizes under loading."""

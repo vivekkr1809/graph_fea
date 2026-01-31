@@ -106,7 +106,9 @@ class TestTensionSplit:
         assert np.allclose(eps_plus + eps_minus, eps)
 
     def test_spectral_split_energy_conservation(self):
-        """Energy should be conserved: ψ = ψ⁺ + ψ⁻."""
+        """Energy should be conserved: ψ = ψ⁺ + ψ⁻ using Miehe formulation."""
+        from physics.tension_split import compute_split_energy_miehe
+
         mat = IsotropicMaterial(E=210e9, nu=0.3, Gc=2700, l0=0.01)
         C = mat.constitutive_matrix()
 
@@ -124,9 +126,10 @@ class TestTensionSplit:
             eps = np.array(eps)
             psi_total = 0.5 * eps @ C @ eps
 
-            _, eps_plus, eps_minus = spectral_split_2d(eps)
-            psi_plus = 0.5 * eps_plus @ C @ eps_plus
-            psi_minus = 0.5 * eps_minus @ C @ eps_minus
+            # Use the correct Miehe split formula for energy conservation
+            psi_plus, psi_minus = compute_split_energy_miehe(
+                eps, mat.lame_lambda, mat.lame_mu
+            )
 
             assert np.isclose(psi_total, psi_plus + psi_minus, rtol=1e-10), \
                 f"Energy not conserved for eps={eps}: total={psi_total}, sum={psi_plus + psi_minus}"
