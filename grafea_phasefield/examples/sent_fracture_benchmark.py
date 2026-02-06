@@ -21,7 +21,7 @@ import sys
 import os
 
 # Add src to path for imports
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 from benchmarks.sent_benchmark import (
     SENT_PARAMS,
@@ -78,6 +78,11 @@ def run_quick_benchmark():
 
     results = quick_sent_test(n_steps=30, verbose=True)
 
+    # Try to plot if matplotlib is available
+    try:
+        plot_results(results)
+    except ImportError:
+        print("\nNote: matplotlib not available, skipping plots")
     # Basic validation
     print("\n--- Quick Validation ---")
     print(f"Peak force: {results.peak_force:.4f}")
@@ -100,9 +105,9 @@ def run_with_class_interface():
 
     # Create benchmark with custom parameters
     params = {
-        'n_steps': 50,
-        'h_fine': 0.0075,   # Slightly coarser for speed
-        'h_coarse': 0.03,
+        "n_steps": 50,
+        "h_fine": 0.0075,  # Slightly coarser for speed
+        "h_coarse": 0.03,
     }
 
     benchmark = SENTBenchmark(params)
@@ -115,7 +120,7 @@ def run_with_class_interface():
 
     # Plot results (if matplotlib available)
     try:
-        benchmark.plot_results(save_path='sent_results.png')
+        benchmark.plot_results(save_path="sent_results.png")
     except ImportError:
         print("\nNote: matplotlib not available, skipping plots")
 
@@ -132,17 +137,17 @@ def demonstrate_mesh_generation():
 
     # Generate meshes with different parameters
     params_coarse = {
-        'L': 1.0,
-        'h_fine': 0.02,
-        'h_coarse': 0.1,
-        'refinement_band': 0.15,
+        "L": 1.0,
+        "h_fine": 0.02,
+        "h_coarse": 0.1,
+        "refinement_band": 0.15,
     }
 
     params_fine = {
-        'L': 1.0,
-        'h_fine': 0.005,
-        'h_coarse': 0.05,
-        'refinement_band': 0.1,
+        "L": 1.0,
+        "h_fine": 0.005,
+        "h_coarse": 0.05,
+        "refinement_band": 0.1,
     }
 
     print("\nCoarse mesh:")
@@ -173,14 +178,14 @@ def demonstrate_mesh_generation():
 
         # Plot coarse mesh
         plot_mesh(mesh_coarse, ax=axes[0], show_edges=True)
-        axes[0].set_title(f'Coarse Mesh ({mesh_coarse.n_elements} elements)')
+        axes[0].set_title(f"Coarse Mesh ({mesh_coarse.n_elements} elements)")
 
         # Plot with pre-crack damage
         plot_damage_field(mesh_coarse, d_coarse, ax=axes[1])
-        axes[1].set_title('Pre-crack Damage Field')
+        axes[1].set_title("Pre-crack Damage Field")
 
         plt.tight_layout()
-        plt.savefig('sent_mesh_demo.png', dpi=150)
+        plt.savefig("sent_mesh_demo.png", dpi=150)
         print("\nMesh visualization saved to 'sent_mesh_demo.png'")
         plt.show()
 
@@ -198,61 +203,93 @@ def plot_results(results):
 
     # 1. Load-displacement curve
     ax = axes[0, 0]
-    ax.plot(results.displacement * 1000, results.force, 'b-', lw=2)
-    ax.axhline(y=results.peak_force, color='r', linestyle='--', alpha=0.7,
-               label=f'Peak = {results.peak_force:.4f}')
-    ax.axvline(x=results.displacement_at_peak * 1000, color='r', linestyle='--', alpha=0.7)
-    ax.set_xlabel('Displacement (mm × 10³)')
-    ax.set_ylabel('Reaction Force')
-    ax.set_title('Load-Displacement Curve')
+    ax.plot(results.displacement * 1000, results.force, "b-", lw=2)
+    ax.axhline(
+        y=results.peak_force,
+        color="r",
+        linestyle="--",
+        alpha=0.7,
+        label=f"Peak = {results.peak_force:.4f}",
+    )
+    ax.axvline(
+        x=results.displacement_at_peak * 1000, color="r", linestyle="--", alpha=0.7
+    )
+    ax.set_xlabel("Displacement (mm × 10³)")
+    ax.set_ylabel("Reaction Force")
+    ax.set_title("Load-Displacement Curve")
     ax.legend()
     ax.grid(True, alpha=0.3)
 
     # 2. Crack length evolution
     ax = axes[0, 1]
-    ax.plot(results.displacement * 1000, results.crack_length, 'g-', lw=2)
-    ax.axhline(y=SENT_PARAMS['L'], color='k', linestyle=':', alpha=0.7,
-               label=f'Domain size = {SENT_PARAMS["L"]}')
-    ax.set_xlabel('Displacement (mm × 10³)')
-    ax.set_ylabel('Crack Length')
-    ax.set_title('Crack Propagation')
+    ax.plot(results.displacement * 1000, results.crack_length, "g-", lw=2)
+    ax.axhline(
+        y=SENT_PARAMS["L"],
+        color="k",
+        linestyle=":",
+        alpha=0.7,
+        label=f'Domain size = {SENT_PARAMS["L"]}',
+    )
+    ax.set_xlabel("Displacement (mm × 10³)")
+    ax.set_ylabel("Crack Length")
+    ax.set_title("Crack Propagation")
     ax.legend()
     ax.grid(True, alpha=0.3)
 
     # 3. Energy evolution
     ax = axes[1, 0]
-    ax.plot(results.displacement * 1000, results.strain_energy,
-            'b-', label='Strain', lw=2)
-    ax.plot(results.displacement * 1000, results.surface_energy,
-            'r-', label='Surface', lw=2)
-    ax.plot(results.displacement * 1000, results.total_energy,
-            'k--', label='Total', lw=2)
-    ax.set_xlabel('Displacement (mm × 10³)')
-    ax.set_ylabel('Energy')
-    ax.set_title('Energy Evolution')
+    ax.plot(
+        results.displacement * 1000, results.strain_energy, "b-", label="Strain", lw=2
+    )
+    ax.plot(
+        results.displacement * 1000, results.surface_energy, "r-", label="Surface", lw=2
+    )
+    ax.plot(
+        results.displacement * 1000, results.total_energy, "k--", label="Total", lw=2
+    )
+    ax.set_xlabel("Displacement (mm × 10³)")
+    ax.set_ylabel("Energy")
+    ax.set_title("Energy Evolution")
     ax.legend()
     ax.grid(True, alpha=0.3)
 
     # 4. Crack path
     ax = axes[1, 1]
     if len(results.crack_path) > 0:
-        ax.plot(results.crack_path[:, 0], results.crack_path[:, 1],
-                'r.-', lw=2, ms=4, label='Computed path')
-    ax.axhline(y=SENT_PARAMS['crack_y'], color='b', linestyle='--',
-               alpha=0.5, label='Expected (y=0.5)')
-    ax.plot([0, SENT_PARAMS['crack_length']], [SENT_PARAMS['crack_y'], SENT_PARAMS['crack_y']],
-            'b-', lw=3, alpha=0.3, label='Initial crack')
-    ax.set_xlabel('x')
-    ax.set_ylabel('y')
-    ax.set_title('Crack Path')
-    ax.set_xlim([0, SENT_PARAMS['L']])
-    ax.set_ylim([0, SENT_PARAMS['L']])
-    ax.set_aspect('equal')
-    ax.legend(loc='upper right')
+        ax.plot(
+            results.crack_path[:, 0],
+            results.crack_path[:, 1],
+            "r.-",
+            lw=2,
+            ms=4,
+            label="Computed path",
+        )
+    ax.axhline(
+        y=SENT_PARAMS["crack_y"],
+        color="b",
+        linestyle="--",
+        alpha=0.5,
+        label="Expected (y=0.5)",
+    )
+    ax.plot(
+        [0, SENT_PARAMS["crack_length"]],
+        [SENT_PARAMS["crack_y"], SENT_PARAMS["crack_y"]],
+        "b-",
+        lw=3,
+        alpha=0.3,
+        label="Initial crack",
+    )
+    ax.set_xlabel("x")
+    ax.set_ylabel("y")
+    ax.set_title("Crack Path")
+    ax.set_xlim([0, SENT_PARAMS["L"]])
+    ax.set_ylim([0, SENT_PARAMS["L"]])
+    ax.set_aspect("equal")
+    ax.legend(loc="upper right")
     ax.grid(True, alpha=0.3)
 
     plt.tight_layout()
-    plt.savefig('sent_benchmark_results.png', dpi=150)
+    plt.savefig("sent_benchmark_results.png", dpi=150)
     print("\nResults saved to 'sent_benchmark_results.png'")
     plt.show()
 
@@ -294,23 +331,26 @@ def print_benchmark_info():
     print(f"  Max iterations/step:    {SENT_PARAMS['max_iter']}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(description='SENT Fracture Benchmark')
-    parser.add_argument('--mode', choices=['full', 'quick', 'class', 'mesh', 'info'],
-                        default='quick',
-                        help='Run mode: full (complete benchmark), quick (fast test), '
-                             'class (class interface demo), mesh (mesh demo), info (parameters)')
+    parser = argparse.ArgumentParser(description="SENT Fracture Benchmark")
+    parser.add_argument(
+        "--mode",
+        choices=["full", "quick", "class", "mesh", "info"],
+        default="quick",
+        help="Run mode: full (complete benchmark), quick (fast test), "
+        "class (class interface demo), mesh (mesh demo), info (parameters)",
+    )
     args = parser.parse_args()
 
-    if args.mode == 'full':
+    if args.mode == "full":
         run_full_benchmark()
-    elif args.mode == 'quick':
+    elif args.mode == "quick":
         run_quick_benchmark()
-    elif args.mode == 'class':
+    elif args.mode == "class":
         run_with_class_interface()
-    elif args.mode == 'mesh':
+    elif args.mode == "mesh":
         demonstrate_mesh_generation()
-    elif args.mode == 'info':
+    elif args.mode == "info":
         print_benchmark_info()
